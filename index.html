@@ -223,7 +223,7 @@ nav {
 .modal-box {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 16px; width: min(640px, 100%);
+  border-radius: 16px; width: 100%;
   max-height: 90vh; overflow-y: auto;
   animation: modalIn 0.25s ease;
 }
@@ -237,12 +237,14 @@ nav {
 .modal-meta-row .m-rating { color: #fbbf24; }
 .modal-desc { font-size: 13px; color: rgba(240,240,248,0.65); line-height: 1.7; margin-bottom: 16px; }
 .modal-close-btn {
-  position: absolute; top: 16px; right: 16px; z-index: 10;
-  background: rgba(0,0,0,0.6); border: 1px solid var(--border);
+  position: absolute; top: -14px; right: -14px; z-index: 10;
+  background: var(--surface2); border: 1px solid var(--border);
   color: var(--text); border-radius: 50%; width: 32px; height: 32px;
   cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center;
+  transition: background 0.2s;
 }
-.modal-wrapper { position: relative; }
+.modal-close-btn:hover { background: rgba(192,132,252,0.3); }
+.modal-wrapper { position: relative; width: min(640px, 100%); }
 .ep-list-title { font-size: 13px; font-weight: 600; color: var(--muted); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; }
 .ep-list { display: flex; flex-direction: column; gap: 6px; }
 .ep-row {
@@ -395,7 +397,7 @@ footer .foot-logo {
 <footer>
   <div class="foot-logo">DrakorStream</div>
   <p>Platform nonton web drama Korea terlengkap.<br>Video bersumber dari YouTube secara resmi.</p>
-  <p style="margin-top:12px">© 2024 DrakorStream · Dibuat dengan ❤️</p>
+  <p style="margin-top:12px">© <span id="footYear"></span> DrakorStream · Dibuat dengan ❤️</p>
 </footer>
 
 <script>
@@ -547,7 +549,8 @@ function filterGenre(el, genre) {
 function filterAll() { renderGrids(); }
 
 function openModal(id) {
-  const d = dramas[id];
+  const d = dramas.find(x => x.id === id);
+  if (!d) return;
   activeDramaIdx = id;
   activeEp = 0;
   document.getElementById('modalTitle').textContent = d.title;
@@ -577,7 +580,11 @@ function renderEps(d, active) {
 
 function changeEp(i) {
   activeEp = i;
-  renderEps(dramas[activeDramaIdx], i);
+  const d = dramas.find(x => x.id === activeDramaIdx);
+  if (!d) return;
+  renderEps(d, i);
+  // Update video - in real app each ep would have its own ytId; reuse drama's for now
+  document.getElementById('modalIframe').src = `https://www.youtube.com/embed/${d.ytId}?autoplay=1&start=${i * 60}`;
 }
 
 function closeModal() {
@@ -591,7 +598,8 @@ function closeModalBg(e) {
 }
 
 function addWatchlist(id) {
-  alert(`"${dramas[id].title}" ditambahkan ke watchlist! 🎉`);
+  const d = dramas.find(x => x.id === id);
+  if (d) alert(`"${d.title}" ditambahkan ke watchlist! 🎉`);
 }
 
 function toggleSearch() {
@@ -606,6 +614,8 @@ function scrollToSection(id) {
 }
 
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+document.getElementById('footYear').textContent = new Date().getFullYear();
 
 renderGrids();
 </script>
