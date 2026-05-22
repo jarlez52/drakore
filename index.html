@@ -228,8 +228,24 @@ nav {
   animation: modalIn 0.25s ease;
 }
 @keyframes modalIn { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
-.modal-video { width: 100%; aspect-ratio: 16/9; background: #000; border-radius: 16px 16px 0 0; overflow: hidden; }
-.modal-video iframe { width: 100%; height: 100%; border: none; }
+.modal-video { width: 100%; aspect-ratio: 16/9; background: #000; border-radius: 16px 16px 0 0; overflow: hidden; position: relative; cursor: pointer; }
+.modal-video iframe { width: 100%; height: 100%; border: none; position: absolute; inset: 0; display: none; }
+.modal-video.playing iframe { display: block; }
+.modal-video-thumb {
+  position: absolute; inset: 0;
+  background-size: cover; background-position: center;
+  display: flex; align-items: center; justify-content: center;
+}
+.modal-video.playing .modal-video-thumb { display: none; }
+.yt-play-btn {
+  width: 64px; height: 64px; border-radius: 50%;
+  background: rgba(192,132,252,0.9);
+  display: flex; align-items: center; justify-content: center;
+  transition: transform 0.2s, background 0.2s;
+  box-shadow: 0 0 40px rgba(192,132,252,0.5);
+}
+.yt-play-btn:hover { transform: scale(1.1); background: var(--accent); }
+.yt-play-btn svg { width: 28px; height: 28px; fill: #fff; margin-left: 5px; }
 .modal-body { padding: 20px; }
 .modal-title { font-family: 'Bebas Neue', sans-serif; font-size: 28px; letter-spacing: 1px; margin-bottom: 6px; }
 .modal-meta-row { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 12px; }
@@ -263,7 +279,7 @@ nav {
 .ep-info { flex: 1; }
 .ep-name { font-size: 13px; font-weight: 500; }
 .ep-dur { font-size: 11px; color: var(--muted); margin-top: 2px; }
-.ep-play svg { width: 14px; height: 14px; fill: var(--muted); }
+svg.ep-play { width: 14px; height: 14px; fill: var(--muted); flex-shrink: 0; }
 
 /* FOOTER */
 footer {
@@ -382,7 +398,14 @@ footer .foot-logo {
   <div class="modal-wrapper">
     <button class="modal-close-btn" onclick="closeModal()">✕</button>
     <div class="modal-box">
-      <div class="modal-video"><iframe id="modalIframe" allowfullscreen></iframe></div>
+      <div class="modal-video" id="modalVideo" onclick="playVideo()">
+        <iframe id="modalIframe" allowfullscreen></iframe>
+        <div class="modal-video-thumb" id="modalThumb">
+          <div class="yt-play-btn">
+            <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+          </div>
+        </div>
+      </div>
       <div class="modal-body">
         <div class="modal-title" id="modalTitle"></div>
         <div class="modal-meta-row" id="modalMeta"></div>
@@ -560,10 +583,23 @@ function openModal(id) {
     <span>${d.eps} episode</span>
     <span>${d.genre.join(' · ')}</span>`;
   document.getElementById('modalDesc').textContent = d.desc;
-  document.getElementById('modalIframe').src = `https://www.youtube.com/embed/${d.ytId}?autoplay=1`;
+  // Set thumbnail, don't autoplay yet
+  const thumb = document.getElementById('modalThumb');
+  thumb.style.backgroundImage = `url(https://img.youtube.com/vi/${d.ytId}/hqdefault.jpg)`;
+  document.getElementById('modalVideo').classList.remove('playing');
+  document.getElementById('modalIframe').src = '';
+  document.getElementById('modalVideo').dataset.ytid = d.ytId;
   renderEps(d, 0);
   document.getElementById('modalOverlay').classList.add('open');
   document.body.style.overflow = 'hidden';
+}
+
+function playVideo() {
+  const vid = document.getElementById('modalVideo');
+  if (vid.classList.contains('playing')) return;
+  const ytId = vid.dataset.ytid;
+  document.getElementById('modalIframe').src = `https://www.youtube.com/embed/${ytId}?autoplay=1`;
+  vid.classList.add('playing');
 }
 
 function renderEps(d, active) {
@@ -583,13 +619,17 @@ function changeEp(i) {
   const d = dramas.find(x => x.id === activeDramaIdx);
   if (!d) return;
   renderEps(d, i);
-  // Update video - in real app each ep would have its own ytId; reuse drama's for now
-  document.getElementById('modalIframe').src = `https://www.youtube.com/embed/${d.ytId}?autoplay=1&start=${i * 60}`;
+  // Reset video to thumbnail so user clicks play for new episode
+  const vid = document.getElementById('modalVideo');
+  document.getElementById('modalIframe').src = '';
+  vid.classList.remove('playing');
+  vid.dataset.ytid = d.ytId;
 }
 
 function closeModal() {
   document.getElementById('modalOverlay').classList.remove('open');
   document.getElementById('modalIframe').src = '';
+  document.getElementById('modalVideo').classList.remove('playing');
   document.body.style.overflow = '';
 }
 
