@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DrakorStream — Nonton Web Drama Korea</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0a0f;
+  --surface: #12121a;
+  --surface2: #1a1a26;
+  --border: rgba(255,255,255,0.07);
+  --accent: #c084fc;
+  --accent2: #818cf8;
+  --text: #f0f0f8;
+  --muted: #6b7280;
+  --card-r: 10px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Noto Sans', sans-serif;
+  font-size: 14px;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* NAVBAR */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 5%; height: 60px;
+  background: linear-gradient(to bottom, rgba(10,10,15,0.98), transparent);
+  backdrop-filter: blur(10px);
+}
+.logo {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 26px; letter-spacing: 2px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.nav-links { display: flex; gap: 24px; }
+.nav-links a {
+  color: var(--muted); text-decoration: none; font-size: 13px;
+  transition: color 0.2s; cursor: pointer;
+}
+.nav-links a:hover, .nav-links a.active { color: var(--text); }
+.nav-right { display: flex; align-items: center; gap: 12px; }
+.search-icon {
+  background: none; border: none; color: var(--muted);
+  cursor: pointer; font-size: 18px; padding: 6px;
+  transition: color 0.2s;
+}
+.search-icon:hover { color: var(--text); }
+.search-bar-nav {
+  display: none; align-items: center;
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 20px; padding: 4px 14px; gap: 8px;
+}
+.search-bar-nav.open { display: flex; }
+.search-bar-nav input {
+  background: none; border: none; outline: none;
+  color: var(--text); font-size: 13px; width: 180px;
+  font-family: 'Noto Sans', sans-serif;
+}
+.search-bar-nav input::placeholder { color: var(--muted); }
+
+/* HERO */
+.hero {
+  position: relative; height: 100vh; min-height: 500px;
+  display: flex; align-items: flex-end;
+  padding: 0 5% 80px;
+  overflow: hidden;
+}
+.hero-bg {
+  position: absolute; inset: 0;
+  background: linear-gradient(135deg, #1a0533 0%, #0f1535 40%, #0a0a0f 100%);
+}
+.hero-bg::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse 60% 50% at 70% 40%, rgba(192,132,252,0.15), transparent),
+              radial-gradient(ellipse 40% 60% at 20% 60%, rgba(129,140,248,0.1), transparent);
+}
+.hero-noise {
+  position: absolute; inset: 0; opacity: 0.03;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+.hero-gradient {
+  position: absolute; bottom: 0; left: 0; right: 0; height: 60%;
+  background: linear-gradient(to top, var(--bg) 0%, transparent 100%);
+}
+.hero-content { position: relative; z-index: 2; max-width: 520px; }
+.hero-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(192,132,252,0.15); border: 1px solid rgba(192,132,252,0.3);
+  color: var(--accent); font-size: 11px; font-weight: 600;
+  padding: 4px 12px; border-radius: 20px; margin-bottom: 16px;
+  letter-spacing: 1px; text-transform: uppercase;
+}
+.hero h1 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(48px, 8vw, 80px);
+  line-height: 0.95; letter-spacing: 2px;
+  margin-bottom: 16px;
+}
+.hero p {
+  color: rgba(240,240,248,0.65); font-size: 14px;
+  line-height: 1.7; margin-bottom: 20px; max-width: 420px;
+}
+.hero-meta {
+  display: flex; align-items: center; gap: 16px;
+  margin-bottom: 24px; flex-wrap: wrap;
+}
+.hero-meta span { color: var(--muted); font-size: 13px; }
+.hero-meta .rating { color: #fbbf24; font-weight: 600; }
+.hero-meta .sep { color: var(--border); }
+.hero-btns { display: flex; gap: 12px; flex-wrap: wrap; }
+.btn-primary {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--accent); color: #fff;
+  border: none; padding: 12px 28px; border-radius: 8px;
+  font-size: 14px; font-weight: 600; cursor: pointer;
+  font-family: 'Noto Sans', sans-serif;
+  transition: background 0.2s, transform 0.15s;
+}
+.btn-primary:hover { background: #a855f7; transform: translateY(-1px); }
+.btn-secondary {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: rgba(255,255,255,0.08); color: var(--text);
+  border: 1px solid var(--border); padding: 12px 24px; border-radius: 8px;
+  font-size: 14px; cursor: pointer;
+  font-family: 'Noto Sans', sans-serif;
+  transition: background 0.2s;
+}
+.btn-secondary:hover { background: rgba(255,255,255,0.14); }
+
+/* GENRE TABS */
+.genre-section { padding: 32px 5% 0; }
+.genre-tabs {
+  display: flex; gap: 8px; overflow-x: auto;
+  padding-bottom: 4px; scrollbar-width: none;
+}
+.genre-tabs::-webkit-scrollbar { display: none; }
+.gtab {
+  flex-shrink: 0; padding: 7px 18px; border-radius: 20px;
+  font-size: 13px; cursor: pointer;
+  border: 1px solid var(--border);
+  background: var(--surface); color: var(--muted);
+  transition: all 0.2s;
+}
+.gtab:hover { color: var(--text); border-color: rgba(255,255,255,0.2); }
+.gtab.active {
+  background: var(--accent); color: #fff;
+  border-color: var(--accent);
+}
+
+/* SECTIONS */
+.section { padding: 28px 5% 0; }
+.section-head {
+  display: flex; align-items: baseline;
+  justify-content: space-between; margin-bottom: 16px;
+}
+.section-head h2 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 22px; letter-spacing: 1px; color: var(--text);
+}
+.section-head a {
+  font-size: 12px; color: var(--accent);
+  text-decoration: none; cursor: pointer;
+}
+.drama-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 14px;
+}
+.drama-card {
+  cursor: pointer; border-radius: var(--card-r); overflow: hidden;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  transition: transform 0.2s, border-color 0.2s;
+}
+.drama-card:hover { transform: translateY(-4px); border-color: rgba(192,132,252,0.4); }
+.card-poster {
+  width: 100%; aspect-ratio: 2/3;
+  display: flex; align-items: center; justify-content: center;
+  position: relative; overflow: hidden;
+}
+.card-poster svg { width: 48px; height: 48px; opacity: 0.25; }
+.card-poster-overlay {
+  position: absolute; inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 50%);
+  opacity: 0; transition: opacity 0.2s;
+  display: flex; align-items: center; justify-content: center;
+}
+.drama-card:hover .card-poster-overlay { opacity: 1; }
+.play-circle {
+  width: 44px; height: 44px; border-radius: 50%;
+  background: rgba(192,132,252,0.9);
+  display: flex; align-items: center; justify-content: center;
+}
+.play-circle svg { width: 20px; height: 20px; fill: #fff; margin-left: 3px; }
+.card-info { padding: 10px; }
+.card-title {
+  font-size: 13px; font-weight: 600; color: var(--text);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  margin-bottom: 3px;
+}
+.card-sub { font-size: 11px; color: var(--muted); }
+.card-rating { font-size: 11px; color: #fbbf24; margin-top: 3px; }
+
+/* MODAL */
+.modal-overlay {
+  display: none; position: fixed; inset: 0; z-index: 500;
+  background: rgba(0,0,0,0.85); backdrop-filter: blur(8px);
+  align-items: center; justify-content: center; padding: 20px;
+}
+.modal-overlay.open { display: flex; }
+.modal-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px; width: min(640px, 100%);
+  max-height: 90vh; overflow-y: auto;
+  animation: modalIn 0.25s ease;
+}
+@keyframes modalIn { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+.modal-video { width: 100%; aspect-ratio: 16/9; background: #000; border-radius: 16px 16px 0 0; overflow: hidden; }
+.modal-video iframe { width: 100%; height: 100%; border: none; }
+.modal-body { padding: 20px; }
+.modal-title { font-family: 'Bebas Neue', sans-serif; font-size: 28px; letter-spacing: 1px; margin-bottom: 6px; }
+.modal-meta-row { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 12px; }
+.modal-meta-row span { font-size: 12px; color: var(--muted); }
+.modal-meta-row .m-rating { color: #fbbf24; }
+.modal-desc { font-size: 13px; color: rgba(240,240,248,0.65); line-height: 1.7; margin-bottom: 16px; }
+.modal-close-btn {
+  position: absolute; top: 16px; right: 16px; z-index: 10;
+  background: rgba(0,0,0,0.6); border: 1px solid var(--border);
+  color: var(--text); border-radius: 50%; width: 32px; height: 32px;
+  cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center;
+}
+.modal-wrapper { position: relative; }
+.ep-list-title { font-size: 13px; font-weight: 600; color: var(--muted); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; }
+.ep-list { display: flex; flex-direction: column; gap: 6px; }
+.ep-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 12px; border-radius: 8px;
+  border: 1px solid var(--border);
+  cursor: pointer; transition: background 0.15s, border-color 0.15s;
+}
+.ep-row:hover, .ep-row.active {
+  background: rgba(192,132,252,0.1); border-color: rgba(192,132,252,0.35);
+}
+.ep-n {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 18px; color: var(--accent); min-width: 28px;
+}
+.ep-info { flex: 1; }
+.ep-name { font-size: 13px; font-weight: 500; }
+.ep-dur { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.ep-play svg { width: 14px; height: 14px; fill: var(--muted); }
+
+/* FOOTER */
+footer {
+  margin-top: 60px; padding: 32px 5%;
+  border-top: 1px solid var(--border);
+  text-align: center; color: var(--muted); font-size: 12px;
+}
+footer .foot-logo {
+  font-family: 'Bebas Neue', sans-serif; font-size: 22px;
+  letter-spacing: 2px; margin-bottom: 8px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+
+/* SCROLLBAR */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--surface2); border-radius: 2px; }
+
+/* RESPONSIVE */
+@media (max-width: 600px) {
+  .nav-links { display: none; }
+  .hero { padding-bottom: 60px; }
+  .drama-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">DrakorStream</div>
+  <div class="nav-links">
+    <a class="active">Beranda</a>
+    <a onclick="scrollToSection('trending')">Trending</a>
+    <a onclick="scrollToSection('terbaru')">Terbaru</a>
+    <a onclick="scrollToSection('bl')">BL</a>
+    <a onclick="scrollToSection('thriller')">Thriller</a>
+  </div>
+  <div class="nav-right">
+    <div class="search-bar-nav" id="searchBarNav">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--muted)"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input type="text" id="searchInput" placeholder="Cari drama..." oninput="filterAll()">
+    </div>
+    <button class="search-icon" onclick="toggleSearch()" aria-label="Cari">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    </button>
+  </div>
+</nav>
+
+<div class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-noise"></div>
+  <div class="hero-gradient"></div>
+  <div class="hero-content">
+    <div class="hero-badge">🔥 Trending #1</div>
+    <h1>MY DEMON</h1>
+    <p>Seorang pewaris perusahaan besar dan iblis yang kehilangan kekuatannya terikat dalam kontrak misterius. Antara bahaya dan perasaan, mana yang akan menang?</p>
+    <div class="hero-meta">
+      <span class="rating">★ 8.9</span>
+      <span class="sep">|</span>
+      <span>2023</span>
+      <span class="sep">|</span>
+      <span>16 Episode</span>
+      <span class="sep">|</span>
+      <span>Romance · Fantasy</span>
+    </div>
+    <div class="hero-btns">
+      <button class="btn-primary" onclick="openModal(0)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+        Tonton Sekarang
+      </button>
+      <button class="btn-secondary" onclick="addWatchlist(0)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+        Tambah Watchlist
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="genre-section">
+  <div class="genre-tabs" id="genreTabs">
+    <div class="gtab active" onclick="filterGenre(this,'all')">Semua</div>
+    <div class="gtab" onclick="filterGenre(this,'romance')">Romance</div>
+    <div class="gtab" onclick="filterGenre(this,'thriller')">Thriller</div>
+    <div class="gtab" onclick="filterGenre(this,'fantasy')">Fantasy</div>
+    <div class="gtab" onclick="filterGenre(this,'comedy')">Comedy</div>
+    <div class="gtab" onclick="filterGenre(this,'bl')">BL</div>
+    <div class="gtab" onclick="filterGenre(this,'action')">Action</div>
+  </div>
+</div>
+
+<div class="section" id="trending">
+  <div class="section-head">
+    <h2>🔥 Trending</h2>
+    <a onclick="filterGenre(document.querySelector('.gtab'),'all')">Lihat semua →</a>
+  </div>
+  <div class="drama-grid" id="trendingGrid"></div>
+</div>
+
+<div class="section" id="terbaru">
+  <div class="section-head"><h2>✨ Terbaru</h2></div>
+  <div class="drama-grid" id="terbarugrid"></div>
+</div>
+
+<div class="section" id="bl">
+  <div class="section-head"><h2>💜 BL Drama</h2></div>
+  <div class="drama-grid" id="blGrid"></div>
+</div>
+
+<div class="section" id="thriller">
+  <div class="section-head"><h2>🔪 Thriller</h2></div>
+  <div class="drama-grid" id="thrillerGrid"></div>
+</div>
+
+<div class="modal-overlay" id="modalOverlay" onclick="closeModalBg(event)">
+  <div class="modal-wrapper">
+    <button class="modal-close-btn" onclick="closeModal()">✕</button>
+    <div class="modal-box">
+      <div class="modal-video"><iframe id="modalIframe" allowfullscreen></iframe></div>
+      <div class="modal-body">
+        <div class="modal-title" id="modalTitle"></div>
+        <div class="modal-meta-row" id="modalMeta"></div>
+        <div class="modal-desc" id="modalDesc"></div>
+        <div class="ep-list-title">Daftar Episode</div>
+        <div class="ep-list" id="modalEps"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="foot-logo">DrakorStream</div>
+  <p>Platform nonton web drama Korea terlengkap.<br>Video bersumber dari YouTube secara resmi.</p>
+  <p style="margin-top:12px">© 2024 DrakorStream · Dibuat dengan ❤️</p>
+</footer>
+
+<script>
+const dramas = [
+  {
+    id:0, title:"My Demon", year:"2023", eps:16, rating:"8.9",
+    genre:["romance","fantasy"], color:"#2d1b4e", bg:"#c084fc",
+    desc:"Pewaris perusahaan besar dan iblis yang kehilangan kekuatannya terikat dalam kontrak misterius. Romansa penuh ketegangan dan keajaiban.",
+    ytId:"pqnSrKrMPr0", trending:true, new:false,
+    episodes:[
+      {n:1,name:"Pertemuan tak terduga",dur:"1j 5m"},
+      {n:2,name:"Kontrak iblis",dur:"1j 2m"},
+      {n:3,name:"Rahasia masa lalu",dur:"58m"},
+      {n:4,name:"Satu atap",dur:"1j 1m"},
+    ]
+  },
+  {
+    id:1, title:"Crash Landing on You", year:"2019", eps:16, rating:"9.3",
+    genre:["romance"], color:"#0f2a1a", bg:"#34d399",
+    desc:"Pewaris chaebol Korea Selatan mendarat darurat di Korea Utara dan bertemu perwira militer tampan yang menyembunyikannya.",
+    ytId:"dQw4w9WgXcQ", trending:true, new:false,
+    episodes:[
+      {n:1,name:"Pendaratan darurat",dur:"1j 10m"},
+      {n:2,name:"Persembunyian",dur:"1j 5m"},
+      {n:3,name:"Bahaya mendekat",dur:"1j 8m"},
+    ]
+  },
+  {
+    id:2, title:"Bloodhounds", year:"2023", eps:8, rating:"8.7",
+    genre:["thriller","action"], color:"#1a0a0a", bg:"#f87171",
+    desc:"Dua pemuda terjebak dalam dunia rentenir gelap dan harus berjuang untuk bertahan hidup melawan sindikat berbahaya.",
+    ytId:"pqnSrKrMPr0", trending:true, new:true,
+    episodes:[
+      {n:1,name:"Jebakan",dur:"52m"},
+      {n:2,name:"Pelarian",dur:"49m"},
+      {n:3,name:"Persekutuan",dur:"51m"},
+    ]
+  },
+  {
+    id:3, title:"To My Star", year:"2021", eps:9, rating:"9.1",
+    genre:["romance","bl"], color:"#1a2a4e", bg:"#818cf8",
+    desc:"Aktor terkenal dan koki rumahan yang antisosial hidup bersama dan perlahan jatuh cinta dalam keseharian yang sederhana.",
+    ytId:"dQw4w9WgXcQ", trending:false, new:false,
+    episodes:[
+      {n:1,name:"Tamu tak diundang",dur:"25m"},
+      {n:2,name:"Satu dapur",dur:"23m"},
+      {n:3,name:"Masakan spesial",dur:"26m"},
+    ]
+  },
+  {
+    id:4, title:"Semantic Error", year:"2022", eps:8, rating:"9.0",
+    genre:["romance","bl"], color:"#0a1a2e", bg:"#60a5fa",
+    desc:"Mahasiswa desain bebas dan mahasiswa CS perfeksionis bentrok keras—tapi tak bisa saling lepas dari kehidupan satu sama lain.",
+    ytId:"pqnSrKrMPr0", trending:true, new:false,
+    episodes:[
+      {n:1,name:"Error pertama",dur:"28m"},
+      {n:2,name:"Debugging",dur:"26m"},
+      {n:3,name:"Compile success",dur:"29m"},
+    ]
+  },
+  {
+    id:5, title:"A-Teen", year:"2018", eps:20, rating:"8.5",
+    genre:["romance","comedy"], color:"#0f3d2e", bg:"#4ade80",
+    desc:"Drama sekolah tentang persahabatan, cinta pertama, dan perjalanan tumbuh dewasa yang penuh warna bersama teman-teman.",
+    ytId:"dQw4w9WgXcQ", trending:false, new:false,
+    episodes:[
+      {n:1,name:"Hari pertama",dur:"22m"},
+      {n:2,name:"Teman baru",dur:"20m"},
+      {n:3,name:"Perasaan aneh",dur:"21m"},
+    ]
+  },
+  {
+    id:6, title:"Tinted With You", year:"2021", eps:8, rating:"8.3",
+    genre:["romance","fantasy"], color:"#2e1a0f", bg:"#fb923c",
+    desc:"Perjalanan waktu membawa dua jiwa bertemu di era berbeda. Namun perasaan yang tumbuh melampaui batas ruang dan waktu.",
+    ytId:"pqnSrKrMPr0", trending:false, new:true,
+    episodes:[
+      {n:1,name:"Lukisan ajaib",dur:"18m"},
+      {n:2,name:"Dunia lain",dur:"20m"},
+      {n:3,name:"Kembali lagi",dur:"17m"},
+    ]
+  },
+  {
+    id:7, title:"Work Later Drink Now", year:"2021", eps:16, rating:"8.0",
+    genre:["romance","comedy"], color:"#2a1a0f", bg:"#f59e0b",
+    desc:"Tiga sahabat perempuan menghadapi tekanan hidup modern dengan bantuan satu sama lain dan segelas makgeolli dingin.",
+    ytId:"dQw4w9WgXcQ", trending:false, new:true,
+    episodes:[
+      {n:1,name:"Bertemu lagi",dur:"45m"},
+      {n:2,name:"Reuni awkward",dur:"43m"},
+      {n:3,name:"Rahasia terungkap",dur:"46m"},
+    ]
+  },
+];
+
+let activeGenre = 'all';
+let activeEp = 0;
+let activeDramaIdx = 0;
+
+function makeCard(d) {
+  return `<div class="drama-card" onclick="openModal(${d.id})">
+    <div class="card-poster" style="background:${d.color}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="${d.bg}" stroke-width="1.5">
+        <rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/>
+      </svg>
+      <div class="card-poster-overlay">
+        <div class="play-circle">
+          <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        </div>
+      </div>
+    </div>
+    <div class="card-info">
+      <div class="card-title">${d.title}</div>
+      <div class="card-sub">${d.year} · ${d.eps} ep</div>
+      <div class="card-rating">★ ${d.rating}</div>
+    </div>
+  </div>`;
+}
+
+function renderGrids() {
+  const q = (document.getElementById('searchInput').value || '').toLowerCase();
+  let filtered = dramas.filter(d => {
+    const matchGenre = activeGenre === 'all' || d.genre.includes(activeGenre);
+    const matchQ = d.title.toLowerCase().includes(q);
+    return matchGenre && matchQ;
+  });
+
+  const trending = filtered.filter(d => d.trending);
+  const terbaru = filtered.filter(d => d.new);
+  const bl = filtered.filter(d => d.genre.includes('bl'));
+  const thriller = filtered.filter(d => d.genre.includes('thriller'));
+
+  document.getElementById('trendingGrid').innerHTML = trending.length ? trending.map(makeCard).join('') : '<p style="color:var(--muted);font-size:13px">Tidak ada hasil.</p>';
+  document.getElementById('terbarugrid').innerHTML = terbaru.length ? terbaru.map(makeCard).join('') : '<p style="color:var(--muted);font-size:13px">Tidak ada hasil.</p>';
+  document.getElementById('blGrid').innerHTML = (activeGenre === 'all' || activeGenre === 'bl') && bl.length ? bl.map(makeCard).join('') : '';
+  document.getElementById('thrillerGrid').innerHTML = (activeGenre === 'all' || activeGenre === 'thriller') && thriller.length ? thriller.map(makeCard).join('') : '';
+
+  document.getElementById('bl').style.display = document.getElementById('blGrid').innerHTML ? '' : 'none';
+  document.getElementById('thriller').style.display = document.getElementById('thrillerGrid').innerHTML ? '' : 'none';
+}
+
+function filterGenre(el, genre) {
+  document.querySelectorAll('.gtab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  activeGenre = genre;
+  renderGrids();
+}
+
+function filterAll() { renderGrids(); }
+
+function openModal(id) {
+  const d = dramas[id];
+  activeDramaIdx = id;
+  activeEp = 0;
+  document.getElementById('modalTitle').textContent = d.title;
+  document.getElementById('modalMeta').innerHTML = `
+    <span class="m-rating">★ ${d.rating}</span>
+    <span>${d.year}</span>
+    <span>${d.eps} episode</span>
+    <span>${d.genre.join(' · ')}</span>`;
+  document.getElementById('modalDesc').textContent = d.desc;
+  document.getElementById('modalIframe').src = `https://www.youtube.com/embed/${d.ytId}?autoplay=1`;
+  renderEps(d, 0);
+  document.getElementById('modalOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function renderEps(d, active) {
+  document.getElementById('modalEps').innerHTML = d.episodes.map((e,i) => `
+    <div class="ep-row${i===active?' active':''}" onclick="changeEp(${i})">
+      <div class="ep-n">${e.n}</div>
+      <div class="ep-info">
+        <div class="ep-name">${e.name}</div>
+        <div class="ep-dur">${e.dur}</div>
+      </div>
+      <svg viewBox="0 0 24 24" class="ep-play"><path d="M8 5v14l11-7z"/></svg>
+    </div>`).join('');
+}
+
+function changeEp(i) {
+  activeEp = i;
+  renderEps(dramas[activeDramaIdx], i);
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('open');
+  document.getElementById('modalIframe').src = '';
+  document.body.style.overflow = '';
+}
+
+function closeModalBg(e) {
+  if (e.target === document.getElementById('modalOverlay')) closeModal();
+}
+
+function addWatchlist(id) {
+  alert(`"${dramas[id].title}" ditambahkan ke watchlist! 🎉`);
+}
+
+function toggleSearch() {
+  document.getElementById('searchBarNav').classList.toggle('open');
+  if (document.getElementById('searchBarNav').classList.contains('open')) {
+    document.getElementById('searchInput').focus();
+  }
+}
+
+function scrollToSection(id) {
+  document.getElementById(id).scrollIntoView({behavior:'smooth'});
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+renderGrids();
+</script>
+</body>
+</html>
